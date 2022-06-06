@@ -5,10 +5,12 @@ All my archives used in MetaTrader 4 platform for trading.
 In folder MQL5.com you will find the .ex4 created by me that you can download from the market at https://www.mql5.com/en/users/joaquinmetayer/seller or searching "joaquinmetayer" directly from the platform.
 
 These tools were programmed:
-- With the help of the community that is within MT4 that exposes codes that they have created and / or want to correct, taking them, adjusting it, improving, optimizing and publishing it for its correct operation and use.
-- Based on a system idea that I have created myself, programmed by a third party to obtain the "raw" code and give it the final adjustments to go to market.
 
-* It should be noted that none of these tools were completely/from scratch programmed.
+A -  With the help of the community that is within MT4 that exposes codes that they have created and / or want to correct, taking them, adjusting it, improving, optimizing and publishing it for its correct operation and use.
+
+B - Based on a system idea that I have created myself, programmed by a third party to obtain the "raw" code and give it the final adjustments to go to market.
+
+** It should be noted that none of these tools were completely/from scratch programmed.
 
 You will only find the files compiled to .ex4 since they are the only ones I have and the ones that are really worth it.
 
