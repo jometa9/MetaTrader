@@ -4,11 +4,15 @@ All my archives used in MetaTrader 4 platform for trading since year 2019.
 
 In folder MQL5.com you will find the .ex4 created by me that you can download from the market at https://www.mql5.com/en/users/joaquinmetayer/seller or searching "joaquinmetayer" directly from the platform.
 
+In folder opensource-mq4 you will find the .mq4 file of [Odie Trade Manager EA](https://www.mql5.com/en/market/product/61929?source=Site+Profile+Seller) and [Retxed EA](https://www.mql5.com/en/market/product/67307?source=Site+Profile+Seller).
+
 These tools were programmed:
 
 A -  With the help of the community that is within MT4 that exposes codes that they have created and / or want to correct, taking them, adjusting it, improving, optimizing and publishing it for its correct operation and use.
 
 B - Based on a system idea that I have created myself, programmed by a third party to obtain the "raw" code and give it the final adjustments to go to market.
+
+Tip: MQL4 lenguage is similar to JavaScript.
 
 ** It should be noted that none of these tools were completely/from scratch programmed.
 
