@@ -1,6 +1,6 @@
 # MetaTrader
  
-#### https://joaquinmetayer.github.io/2388hc/
+#### https://2388hc.netlify.app/
 #### https://github.com/joaquinmetayer/2388hc/
 
 All my archives used in MetaTrader 4 platform for trading between the years 2019 and 2022.
