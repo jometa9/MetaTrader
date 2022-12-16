@@ -1,0 +1,161 @@
+#property strict
+
+input int eaMagicNumber = 5656; //Magic number
+input double eaLotSize = 0.01; //Lot size
+input double eaOrderDistance = 20; //Order distance
+input int eaMaxCircle = 10; //Max cicles for reset
+
+int eaSlippage = 10;
+string eaComment = "56-";
+int eaBuyCommentInteger = 1;
+int eaSellCommentInteger = 1;
+int myDigits;
+double myPoints;
+//+------------------------------------------------------------------+
+int OnInit(){
+    myDigits = Digits();
+    myPoints = Point();
+    if(myDigits == 3 || myDigits == 5 ){
+        myDigits *= 10;
+        myPoints *= 10;
+    }
+    return(INIT_SUCCEEDED);
+}
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason){}
+//+------------------------------------------------------------------+
+void OnTick(){
+    // BUY ORDER
+    if(CountOrders(Symbol(), OP_BUY, eaMagicNumber) == 0){
+        eaBuyCommentInteger = 1;
+        double orderLots = eaLotSize;
+        if(OrderSend(Symbol(), OP_BUY, orderLots, Ask, eaSlippage, 0, 0, eaComment + IntegerToString(eaBuyCommentInteger), eaMagicNumber, 0, clrBlue) > 0){
+           eaBuyCommentInteger++;
+           // ES EL ⬆️?
+           // eaBuyCommentInteger++;
+        }
+    }
+    else{
+        if(Ask > CalculateOrderOpenPrice(Symbol(), OP_BUY, eaMagicNumber) + eaOrderDistance * myPoints){
+           double orderLots = NormalizeDouble(CalculateOrderLots(Symbol(), OP_BUY, eaMagicNumber) * 1.5, myDigits);
+           CloseOrders(Symbol(), OP_BUY, eaMagicNumber, eaSlippage, clrYellow);
+           if(eaMaxCircle >= eaBuyCommentInteger){
+              if(OrderSend(Symbol(), OP_BUY, orderLots, Ask, eaSlippage, 0, 0, eaComment + IntegerToString(eaBuyCommentInteger), eaMagicNumber, 0, clrBlue) > 0){
+              eaBuyCommentInteger++;
+            // eaBuyCommentInteger++;
+
+            }
+          }
+        }
+        if(Ask < CalculateOrderOpenPrice(Symbol(), OP_BUY, eaMagicNumber) - 1 * eaOrderDistance * myPoints){
+            CloseOrders(Symbol(), OP_BUY, eaMagicNumber, eaSlippage, clrYellow);
+            eaBuyCommentInteger = 1;
+        }
+    }
+    // SELL ORDER
+    /*
+    if(CountOrders(Symbol(), OP_SELL, eaMagicNumber) == 0){
+        eaSellCommentInteger = 1;
+        double orderLots = eaLotSize;
+        if(OrderSend(Symbol(), OP_SELL, orderLots, Bid, eaSlippage, 0, 0, eaComment + IntegerToString(eaSellCommentInteger), eaMagicNumber, 0, clrRed) > 0){
+          eaSellCommentInteger++;
+        }
+    }
+    else{
+        if(Bid > CalculateOrderOpenPrice(Symbol(), OP_SELL, eaMagicNumber) + eaOrderDistance * myPoints){
+          double orderLots = NormalizeDouble(CalculateOrderLots(Symbol(), OP_SELL, eaMagicNumber) * 1.5, myDigits);
+          CloseOrders(Symbol(), OP_SELL, eaMagicNumber, eaSlippage, clrYellow);
+          if(eaMaxCircle >= eaSellCommentInteger){
+            if(OrderSend(Symbol(), OP_SELL, orderLots, Bid, eaSlippage, 0, 0, eaComment + IntegerToString(eaSellCommentInteger), eaMagicNumber, 0, clrRed) > 0){
+            eaSellCommentInteger++;
+            }
+          }
+        }
+        if(Bid < CalculateOrderOpenPrice(Symbol(), OP_SELL, eaMagicNumber) - 1 * eaOrderDistance * myPoints){
+           CloseOrders(Symbol(), OP_SELL, eaMagicNumber, eaSlippage, clrYellow);
+           eaSellCommentInteger = 1;
+        }
+    }
+    */
+}
+//+------------------------------------------------------------------+
+datetime CalculateOrderOpenTime(string orderSymbol, int orderType, int orderMagicNumber){
+    datetime orderOpenTime = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                orderOpenTime = OrderOpenTime();
+            }
+        }
+    }
+    return orderOpenTime;
+}
+//+------------------------------------------------------------------+
+double CalculateOrderOpenPrice(string orderSymbol, int orderType, int orderMagicNumber){
+    double orderOpenPrice = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                orderOpenPrice = OrderOpenPrice();
+            }
+        }
+    }
+    return orderOpenPrice;
+}
+//+------------------------------------------------------------------+
+double CalculateOrderStopLoss(string orderSymbol, int orderType, int orderMagicNumber){
+    double orderStopLoss = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                orderStopLoss = OrderStopLoss();
+            }
+        }
+    }
+    return orderStopLoss;
+}
+//+------------------------------------------------------------------+
+double CalculateOrderLots(string orderSymbol, int orderType, int orderMagicNumber){
+    double orderLots = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                orderLots = OrderLots();
+            }
+        }
+    }
+    return orderLots;
+}
+//+------------------------------------------------------------------+
+int CountOrders(string orderSymbol, int orderType, int orderMagicNumber){
+    int orderCount = 0;
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                orderCount++;
+            }
+        }
+    }  
+    return orderCount;
+} 
+//+------------------------------------------------------------------+
+void CloseOrders(string orderSymbol, int orderType, int orderMagicNumber, int orderSlippage, color orderColor){
+    for(int i = OrdersTotal() - 1; i >= 0; i--){
+        if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES)){
+            if(OrderSymbol() == orderSymbol && OrderType() == orderType && OrderMagicNumber() == orderMagicNumber){
+                if(orderType == OP_BUY){
+                    if(!OrderClose(OrderTicket(), OrderLots(), Bid, orderSlippage, orderColor)){
+                        Print("Buy Order Close Error N : " + IntegerToString(GetLastError()));
+                        continue;
+                    }
+                }
+                else if(orderType == OP_SELL){
+                    if(!OrderClose(OrderTicket(), OrderLots(), Ask, orderSlippage, orderColor)){
+                        Print("Sell Order Close Error N : " + IntegerToString(GetLastError()));
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+}
