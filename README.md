@@ -1,6 +1,6 @@
 # MetaTrader
  
-All my archives used in MetaTrader 4 platform for trading between the years 2019 and 2022.
+All my archives used in MetaTrader 4 / 5 platform for trading since 2018.
 
 In folder MQL5.com you will find the .ex4 created by me that you can download from the market at https://www.mql5.com/en/users/joaquinmetayer/seller or searching "joaquinmetayer" directly from the platform.
 
