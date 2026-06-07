@@ -197,7 +197,6 @@ int OnInit()
    BuildSessionDefs();
    CreateAlertButton();
    CreateClearLinesButton();
-   CreateScrollEndButton();
    BuildSymbolBar();
    CreateLotPanel();
    DrawSessionBoxes();
@@ -254,14 +253,12 @@ void OnTimer()
       g_appliedSpacing = InpSymBtnSpacing;
       CreateAlertButton();
       CreateClearLinesButton();
-      CreateScrollEndButton();
       BuildSymbolBar();
       CreateLotPanel();
       g_lastSymList = CurrentSymListSnapshot();
    }
    EnsureAlertButton();
    EnsureClearLinesButton();
-   EnsureScrollEndButton();
    RefreshSymbolBar();
    CheckTrendLineCrosses();
    DrawMTFAll();
@@ -327,14 +324,6 @@ void OnChartEvent(const int    id,
    {
       ObjectSetInteger(0, BTN_CLEAR_LINES, OBJPROP_STATE, false);
       ClearAllUserLines();
-      return;
-   }
-
-   if(sparam == BTN_SCROLL_END)
-   {
-      ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_STATE, false);
-      ChartNavigate(0, CHART_END, 0);
-      ChartRedraw(0);
       return;
    }
 
@@ -524,55 +513,6 @@ void EnsureClearLinesButton()
 // ====================================================================
 int PanelScrollEndH() { return PanelSymBtnH(); }
 
-void CreateScrollEndButton()
-{
-   if(ObjectFind(0, BTN_SCROLL_END) >= 0) ObjectDelete(0, BTN_SCROLL_END);
-
-   ENUM_BASE_CORNER corner;
-   int x, y, w, h;
-   if(InpShowSymBar)
-   {
-      int count = MathMin(SymbolsTotal(true), InpSymMaxCount);
-      int rows  = (count + 1) / 2;
-      corner = InpSymBarCorner;
-      x = InpSymBarX;
-      y = InpSymBarY + rows * (PanelSymBtnH() + InpSymBtnSpacing) + PanelAlertH() + InpSymBtnSpacing
-        + PanelClearLinesH() + InpSymBtnSpacing;
-      w = PanelAlertW();
-      h = PanelScrollEndH();
-   }
-   else
-   {
-      corner = InpBtnCorner;
-      x = InpBtnX;
-      y = InpBtnY + PanelAlertH() + InpSymBtnSpacing + PanelClearLinesH() + InpSymBtnSpacing;
-      w = PanelAlertW();
-      h = PanelScrollEndH();
-   }
-
-   ObjectCreate(0, BTN_SCROLL_END, OBJ_BUTTON, 0, 0, 0);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_CORNER,       corner);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_XDISTANCE,    x);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_YDISTANCE,    y);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_XSIZE,        w);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_YSIZE,        h);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_FONTSIZE,     9);
-   ObjectSetString (0, BTN_SCROLL_END, OBJPROP_FONT,         "Arial Bold");
-   ObjectSetString (0, BTN_SCROLL_END, OBJPROP_TEXT,         "GO TO END");
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_BGCOLOR,      C'70,90,110');
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_COLOR,        clrWhite);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_BORDER_COLOR, clrDimGray);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_BACK,         false);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_SELECTABLE,   false);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_HIDDEN,       true);
-   ObjectSetInteger(0, BTN_SCROLL_END, OBJPROP_ZORDER,       1000);
-}
-
-void EnsureScrollEndButton()
-{
-   if(ObjectFind(0, BTN_SCROLL_END) < 0) CreateScrollEndButton();
-}
-
 // Wipe user-drawn trendlines / h-lines on every open chart so alerts stop
 // firing and the user can start drawing from a clean slate. Indicator-owned
 // objects (PFX prefix) are left alone.
@@ -632,8 +572,7 @@ void CreateLotPanel()
 
    // Y just below alert button + clear-lines button + scroll-end button.
    int y = InpSymBarY + rows * (PanelSymBtnH() + InpSymBtnSpacing) + alertH + InpSymBtnSpacing
-         + PanelClearLinesH() + InpSymBtnSpacing
-         + PanelScrollEndH() + InpSymBtnSpacing;
+         + PanelClearLinesH() + InpSymBtnSpacing;
 
    // RISK % button
    ObjectCreate (0, BTN_LOT_PCT, OBJ_BUTTON, 0, 0, 0);
@@ -925,7 +864,6 @@ void RefreshSymbolBar()
       // Row count changed -> reposition the alert button, clear-lines button, scroll-end button, and lot panel below the new grid.
       CreateAlertButton();
       CreateClearLinesButton();
-      CreateScrollEndButton();
       CreateLotPanel();
    }
    else
