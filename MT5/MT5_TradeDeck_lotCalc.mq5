@@ -3,7 +3,7 @@
 //|                  Minimal lot calculator for MT5                  |
 //+------------------------------------------------------------------+
 #property copyright   ""
-#property version     "1.00"
+#property version     "2.00"
 #property description "Click RISK$ -> click entry -> click SL -> shows lot size."
 #property indicator_chart_window
 #property indicator_buffers 0
@@ -121,10 +121,15 @@ void OnChartEvent(const int    id,
          double sl  = price;
          DrawHLine(LINE_SL, sl, InpSLCol, STYLE_SOLID, 2);
 
-         double lot = CalcLot(g_entry, sl, InpRiskMoney);
-         g_lastLot  = lot;
-         double pts = MathAbs(g_entry - sl) / _Point;
-         SetLabel(StringFormat("%.2f", lot));
+         double lot  = CalcLot(g_entry, sl, InpRiskMoney);
+         double dist = MathAbs(g_entry - sl);
+         double pts  = dist / _Point;
+         g_lastLot   = lot;
+
+         PrintFormat("[LotCalc] entry=%.5f  sl=%.5f  dist=%.5f  pts=%.1f  lot=%.4f",
+                     g_entry, sl, dist, pts, lot);
+
+         SetLabel(lot > 0 ? StringFormat("%.2f (%.0fpt)", lot, pts) : StringFormat("MIN (%.0fpt)", pts));
 
          g_state = STATE_IDLE;
          ChartSetInteger(0, CHART_EVENT_MOUSE_MOVE, false);
@@ -181,11 +186,27 @@ void Cancel()
 
 double CalcLot(double entry, double sl, double riskMoney)
 {
-   double tickVal  = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
-   double tickSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
-   double dist     = MathAbs(entry - sl);
-   if(tickVal <= 0 || tickSize <= 0 || dist <= 0) return 0.0;
-   double lossPerLot = (dist / tickSize) * tickVal;
+   double tickVal      = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE);
+   double tickSize     = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+   double contractSize = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_CONTRACT_SIZE);
+   double dist         = MathAbs(entry - sl);
+   if(tickSize <= 0 || contractSize <= 0 || dist <= 0) return 0.0;
+
+   // When profit currency == account currency (e.g. XAUUSD/USD, EURUSD/USD),
+   // derive lossPerLot from contract size — avoids broker tickVal reporting errors.
+   // When they differ (e.g. USDJPY: profit in JPY, account in USD), tickVal is
+   // the only source of the cross-rate conversion, so we fall back to it.
+   string profitCcy  = SymbolInfoString(_Symbol, SYMBOL_CURRENCY_PROFIT);
+   string accountCcy = AccountInfoString(ACCOUNT_CURRENCY);
+
+   double lossPerLot;
+   if(profitCcy == accountCcy)
+      lossPerLot = dist * contractSize;
+   else
+      lossPerLot = (dist / tickSize) * tickVal;
+
+   PrintFormat("[LotCalc] profitCcy=%s acctCcy=%s contractSize=%.2f tickVal=%.6f lossPerLot=%.4f",
+               profitCcy, accountCcy, contractSize, tickVal, lossPerLot);
    if(lossPerLot <= 0) return 0.0;
 
    double vmin  = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
@@ -193,7 +214,10 @@ double CalcLot(double entry, double sl, double riskMoney)
    double vstep = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
    double lot   = riskMoney / lossPerLot;
    if(vstep > 0) lot = MathFloor(lot / vstep) * vstep;
-   lot = MathMax(vmin, MathMin(vmax, lot));
+
+   // If lot is below minimum, return 0 so the label signals "too small" instead of silently inflating risk
+   if(lot < vmin) return 0.0;
+   lot = MathMin(vmax, lot);
    return lot;
 }
 
